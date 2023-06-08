@@ -31,7 +31,7 @@ export default function App() {
     // const location = await Location.getCurrentPositionAsync({ accuracy: 5 });
     setCity(location[0].city);
     const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=alerts&appid=${API_KEY}`
+      `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${API_KEY}`
     );
     const json = await response.json();
     console.log(json);
