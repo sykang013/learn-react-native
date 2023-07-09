@@ -10,6 +10,8 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { theme } from "./colors";
 
 export default function App() {
@@ -19,33 +21,17 @@ export default function App() {
   //user가 입력한 값 저장
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
-  //travel 함수
   const travel = () => setWorking(false);
-  //work 함수
   const work = () => setWorking(true);
   const onChangeText = (payload) => setText(payload);
   const addToDo = () => {
-    //alert(text);//작동확인용
     if (text === "") {
       //todo의 현재값(text)이 비어있다면 함수 종료
       return;
     }
-    //Object.assign 활용하여 합쳐진 객체 생성하기
-    // const newToDos = Object.assign(
-    //   //Object.assign으로 두 가지 객체 합쳐서 내보내기
-    //   {}, //target object
-    //   toDos, //이전의 toDos
-    //   {
-    //     //계산된 속성명(computed property name)으로 Date.now()가 반환하는 값을 지정해주고 있음.
-    //     //객체 리터럴에서 키를 [] 괄호로 감쌀 경우, 해당 표현식이 계산된 값을 속성 이름으로 사용한다.
-    //     [Date.now()]: { text, work: working }, //새로운 todo
-    //   }
-    // );
-    // save to do 나중에 할 것(일단은 공란으로 둔다)
-    //다른방법
     const newToDos = {
       ...toDos, //toDos의 값들을 전개한 값
-      [Date.now()]: { text, work: working }, //계산된 속성명을 통한 Date.now()함수 반환값을 아이디로,
+      [Date.now()]: { text, working }, //계산된 속성명을 통한 Date.now()함수 반환값을 아이디로,
     };
     setToDos(newToDos);
     setText("");
@@ -54,7 +40,6 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
       <View style={styles.header}>
-        {/* work 누르면 work 함수 호출 */}
         <TouchableOpacity onPress={work}>
           <Text
             style={{
@@ -65,7 +50,6 @@ export default function App() {
             Work
           </Text>
         </TouchableOpacity>
-        {/* travel 누르면 travel 함수 호출 */}
         <TouchableOpacity onPress={travel}>
           <Text
             style={{
@@ -78,8 +62,8 @@ export default function App() {
         </TouchableOpacity>
       </View>
       <TextInput
-        onSubmitEditing={addToDo}
-        onChangeText={onChangeText}
+        onSubmitEditing={addToDo} //submit버튼이 눌려지면 호출될 콜백함수
+        onChangeText={onChangeText} //text input의 텍스트가 변경될 때 호출될 콜백함수. 변경된 텍스트는 콜백 핸들러에 단일 문자열 인수로 전달됩니다.
         returnKeyType="done"
         value={text}
         placeholder={working ? "Add a To Do" : "Where do you wanna go?"}
@@ -87,16 +71,16 @@ export default function App() {
       />
       {/* 스크롤이 가능한 컨테이너 역할 */}
       <ScrollView>
-        {/* map을 돌리기 위해 Object의 키들을 배열로 추출keys() 한 후 map 돌림 */}
+        {/* map을 돌리기 위해 Object의 키들을 배열로 추출-keys() 한 후 map 돌림 */}
         {Object.keys(toDos).map(
           (
             key //toDos객체 안의 key(id)들을 배열로 반환, map메서드로 각 키를 순회하며 View,Text 생성
-          ) => (
-            <View style={styles.toDo} key={key}>
-              {/* toDos */}
-              <Text style={styles.toDoText}>{toDos[key].text}</Text>
-            </View>
-          )
+          ) =>
+            toDos[key].working === working ? ( //toDos객체안의 key(id)의 working이 working과 strict하게 동일한가?
+              <View style={styles.toDo} key={key}>
+                <Text style={styles.toDoText}>{toDos[key].text}</Text>
+              </View>
+            ) : null // 그렇다면 <View> 컴포넌트 반환, 아니라면 null
         )}
       </ScrollView>
     </View>
@@ -107,7 +91,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.bg,
-    paddingVertical: 20, //CSS에서는 없는 속성
+    paddingVertical: 20,
   },
   header: {
     justifyContent: "space-between",
